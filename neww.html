@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Tab Name -->
+  <title>Vilnius Prayer</title>
+  
+  <!-- Icons & Home Screen Config -->
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Vilnius Pray">
+
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0d1520; --card: #111d2e; --border-gold: rgba(194,152,72,0.2);
+      --gold: #c29848; --gold-bright: #dbb869; --text: #e8dfc8; --text-dim: rgba(232,223,200,0.5);
+      --next-bg: rgba(55,120,80,0.2); --next-text: #8fe3ad; --shadow: 0 32px 80px rgba(0,0,0,0.5);
+    }
+    body.light {
+      --bg: #ede8dd; --card: #faf6ee; --border-gold: rgba(130,96,22,0.2);
+      --gold: #7a5c10; --gold-bright: #9b7520; --text: #1c1810; --text-dim: rgba(28,24,16,0.6);
+      --next-bg: rgba(20,85,45,0.1); --next-text: #1a5e30; --shadow: 0 20px 60px rgba(0,0,0,0.1);
+    }
+    body {
+      font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text);
+      margin: 0; padding: 20px 12px; display: flex; justify-content: center; transition: 0.4s;
+    }
+    .container {
+      max-width: 460px; width: 100%; background: var(--card); border-radius: 28px;
+      border: 1px solid var(--border-gold); box-shadow: var(--shadow); overflow: hidden;
+    }
+    .header { padding: 22px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .city-name { font-family: 'Cormorant Garamond', serif; font-size: 2.1rem; color: var(--gold); line-height: 1; }
+    .header-right { display: flex; gap: 8px; }
+    .icon-btn {
+      width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border-gold);
+      background: rgba(194,152,72,0.1); color: var(--gold); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .live-time { font-family: 'JetBrains Mono', monospace; font-size: 3.2rem; font-weight: 700; text-align: center; margin: 10px 0; }
+    .prog-track { height: 3px; background: rgba(255,255,255,0.05); border-radius: 2px; margin: 15px 22px; overflow: hidden; }
+    .prog-fill { height: 100%; background: var(--gold); width: 0%; transition: 1s linear; }
+    .tabs { display: flex; gap: 6px; padding: 0 22px 15px; }
+    .tab { flex: 1; padding: 10px; border: none; border-radius: 12px; background: rgba(194,152,72,0.05); color: var(--text-dim); cursor: pointer; font-weight: 600; }
+    .tab.active { background: var(--gold); color: var(--card); }
+    .prayer-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 22px; border-bottom: 1px solid rgba(194,152,72,0.05); }
+    .prayer-row.next { background: var(--next-bg); border-left: 4px solid var(--next-text); color: var(--next-text); }
+    .p-time { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.1rem; color: var(--gold); }
+    .prayer-row.next .p-time { color: var(--next-text); }
+    .chip { font-size: 0.7rem; background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 6px; margin-left: 8px; font-weight: bold; }
+    #month-view { display: none; padding: 10px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th { color: var(--gold); padding: 10px; border-bottom: 1px solid var(--border-gold); }
+    td { padding: 10px; text-align: center; border-bottom: 1px solid rgba(194,152,72,0.03); }
+    .today-row { background: var(--next-bg); color: var(--next-text); }
+    .sig { text-align: center; font-size: 0.6rem; opacity: 0.3; padding: 20px; letter-spacing: 2px; }
+  </style>
+</head>
+<body class="dark"> <!-- Defaulting to dark based on preference -->
+
+<div class="container">
+  <div class="header">
+    <div>
+      <div class="city-name" id="city-title">🕌 Vilnius</div>
+      <div id="date-line" style="font-size:0.8rem; opacity:0.6; margin-top:5px;">...</div>
+      <div id="hijri-line" style="font-size:0.85rem; color:var(--gold); font-weight:bold;">...</div>
+    </div>
+    <div class="header-right">
+      <button onclick="toggleMode()" class="icon-btn" id="mode-btn">☀️</button>
+      <button onclick="requestNotifications()" class="icon-btn">🔔</button>
+      <button onclick="toggleLang()" class="icon-btn" id="lang-btn">AR</button>
+    </div>
+  </div>
+
+  <div class="live-time" id="live-time">00:00:00</div>
+  <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+
+  <div class="tabs">
+    <button id="btn-today" class="tab active" onclick="toggleView('today')">Today</button>
+    <button id="btn-month" class="tab" onclick="toggleView('month')">Month</button>
+  </div>
+
+  <div id="today-view"></div>
+  <div id="month-view">
+    <table><thead id="month-head"></thead><tbody id="month-body"></tbody></table>
+  </div>
+
+  <div class="sig">HAZ</div>
+</div>
+
+<script>
+  let currentLang = 'en';
+  const i18n = {
+    en: { today:"Today", month:"Month", inLabel:"In", prayers:["Fajr","Sunrise","Dhuhr","Asr","Maghrib","Isha"], cols:["Day","Fajr","Sun","Dhuhr","Asr","Magh","Isha"] },
+    ar: { today:"اليوم", month:"الشهر", inLabel:"بعد", prayers:["الفجر","الشروق","الظهر","العصر","المغرب","العشاء"], cols:["يوم","فجر","شروق","ظهر","عصر","مغرب","عشاء"] }
+  };
+
+  const data = [
+    {d:"11",h:"24 Zilkade",ha:"٢٤ ذو القعدة",t:["03:33","05:13","13:20","17:33","21:17","22:46"]},
+    {d:"12",h:"25 Zilkade",ha:"٢٥ ذو القعدة",t:["03:32","05:12","13:20","17:34","21:19","22:47"]},
+    {d:"13",h:"26 Zilkade",ha:"٢٦ ذو القعدة",t:["03:31","05:10","13:20","17:34","21:21","22:48"]},
+    {d:"14",h:"27 Zilkade",ha:"٢٧ ذو القعدة",t:["03:30","05:08","13:20","17:35","21:23","22:49"]},
+    {d:"15",h:"28 Zilkade",ha:"٢٨ ذو القعدة",t:["03:29","05:06","13:20","17:36","21:24","22:51"]},
+    {d:"16",h:"29 Zilkade",ha:"٢٩ ذو القعدة",t:["03:28","05:04","13:20","17:37","21:26","22:52"]},
+    {d:"17",h:"30 Zilkade",ha:"٣٠ ذو القعدة",t:["03:27","05:03","13:20","17:37","21:28","22:53"]},
+    {d:"18",h:"1 Zilhicce",ha:"١ ذو الحجة",t:["03:26","05:01","13:20","17:38","21:30","22:54"]},
+    {d:"19",h:"2 Zilhicce",ha:"٢ ذو الحجة",t:["03:25","05:00","13:20","17:39","21:31","22:55"]},
+    {d:"20",h:"3 Zilhicce",ha:"٣ ذو الحجة",t:["03:25","04:58","13:20","17:39","21:33","22:56"]},
+    {d:"21",h:"4 Zilhicce",ha:"٤ ذو الحجة",t:["03:24","04:56","13:20","17:40","21:35","22:57"]},
+    {d:"22",h:"5 Zilhicce",ha:"٥ ذو الحجة",t:["03:23","04:55","13:21","17:41","21:36","22:58"]},
+    {d:"23",h:"6 Zilhicce",ha:"٦ ذو الحجة",t:["03:22","04:54","13:21","17:41","21:38","22:59"]},
+    {d:"24",h:"7 Zilhicce",ha:"٧ ذو الحجة",t:["03:21","04:52","13:21","17:42","21:39","23:00"]},
+    {d:"25",h:"8 Zilhicce",ha:"٨ ذو الحجة",t:["03:21","04:51","13:21","17:42","21:41","23:01"]},
+    {d:"26",h:"9 Zilhicce",ha:"٩ ذو الحجة",t:["03:20","04:49","13:21","17:43","21:42","23:02"]},
+    {d:"27",h:"10 Zilhicce",ha:"١٠ ذو الحجة",t:["03:19","04:48","13:21","17:44","21:44","23:03"]},
+    {d:"28",h:"11 Zilhicce",ha:"١١ ذو الحجة",t:["03:18","04:47","13:21","17:44","21:45","23:04"]},
+    {d:"29",h:"12 Zilhicce",ha:"١٢ ذو الحجة",t:["03:18","04:46","13:21","17:45","21:47","23:05"]},
+    {d:"30",h:"13 Zilhicce",ha:"١٣ ذو الحجة",t:["03:17","04:45","13:21","17:45","21:48","23:06"]},
+    {d:"31",h:"14 Zilhicce",ha:"١٤ ذو الحجة",t:["03:17","04:44","13:22","17:46","21:49","23:07"]}
+  ];
+
+  function updateUI() {
+    const now = new Date();
+    const vStr = now.toLocaleTimeString('en-GB', {timeZone:'Europe/Vilnius', hour12:false});
+    const [h, m] = vStr.split(':').map(Number);
+    const curMins = h * 60 + m;
+    const dayStr = String(now.getDate()).padStart(2, '0');
+
+    document.getElementById("live-time").textContent = vStr;
+    document.getElementById("date-line").textContent = now.toLocaleDateString(currentLang==='ar'?'ar-EG':'en-GB', {weekday:'long', day:'numeric', month:'long'});
+
+    const dayData = data.find(x => x.d === dayStr);
+    if (!dayData) return;
+
+    document.getElementById("hijri-line").textContent = (currentLang==='ar' ? dayData.ha : dayData.h) + " 1447 AH";
+
+    let nextFound = false;
+    let html = "";
+
+    dayData.t.forEach((time, i) => {
+      const [pH, pM] = time.split(':').map(Number);
+      const pMins = pH * 60 + pM;
+      const isNext = !nextFound && curMins < pMins;
+      let chip = "";
+
+      if (isNext) {
+        nextFound = true;
+        const diff = pMins - curMins;
+        const hh = Math.floor(diff/60);
+        const mm = diff%60;
+        const timeLabel = `${hh > 0 ? hh + 'h ' : ''}${mm}m`;
+        chip = `<span class="chip">${i18n[currentLang].inLabel} ${timeLabel}</span>`;
+        
+        // --- RESTORED TAB TITLE LOGIC ---
+        document.title = `${timeLabel} to ${i18n.en.prayers[i]}`;
+        
+        document.getElementById("prog-fill").style.width = (curMins / 1440 * 100) + "%";
+      }
+
+      html += `<div class="prayer-row ${isNext ? 'next' : ''}">
+        <span style="font-weight:600">${i18n[currentLang].prayers[i]}</span>
+        <div class="p-time">${time}${chip}</div>
+      </div>`;
+    });
+
+    document.getElementById("today-view").innerHTML = html;
+    
+    // Reset title if all prayers for the day are finished
+    if (!nextFound) {
+        document.title = "Vilnius Prayer";
+        document.getElementById("prog-fill").style.width = "100%";
+    }
+  }
+
+  function toggleMode() {
+    document.body.classList.toggle('light');
+    const isLight = document.body.classList.contains('light');
+    document.getElementById("mode-btn").textContent = isLight ? "🌙" : "☀️";
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  }
+
+  function toggleLang() {
+    currentLang = currentLang === 'en' ? 'ar' : 'en';
+    document.body.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+    document.getElementById("lang-btn").textContent = currentLang === 'en' ? 'AR' : 'EN';
+    document.getElementById("btn-today").textContent = i18n[currentLang].today;
+    document.getElementById("btn-month").textContent = i18n[currentLang].month;
+    updateUI();
+  }
+
+  function toggleView(v) {
+    document.getElementById("today-view").style.display = v === 'today' ? 'block' : 'none';
+    document.getElementById("month-view").style.display = v === 'month' ? 'block' : 'none';
+    document.getElementById("btn-today").classList.toggle('active', v==='today');
+    document.getElementById("btn-month").classList.toggle('active', v==='month');
+    if(v === 'month') buildMonthTable();
+  }
+
+  function buildMonthTable() {
+    const today = String(new Date().getDate()).padStart(2,'0');
+    document.getElementById("month-head").innerHTML = `<tr>${i18n[currentLang].cols.map(c => `<th>${c}</th>`).join('')}</tr>`;
+    document.getElementById("month-body").innerHTML = data.map(day => `
+      <tr class="${day.d === today ? 'today-row' : ''}">
+        <td>${day.d}</td>${day.t.map(t => `<td>${t}</td>`).join('')}
+      </tr>`).join('');
+  }
+
+  function requestNotifications() {
+    if (!("Notification" in window)) return;
+    Notification.requestPermission().then(p => { if (p === "granted") new Notification("Vilnius Prayer", { body: "Active ✅" }); });
+  }
+
+  // Load Saved Theme
+  if(localStorage.getItem('theme') === 'light') {
+    document.body.classList.add('light');
+    document.getElementById("mode-btn").textContent = "🌙";
+  } else {
+    document.body.classList.remove('light');
+    document.getElementById("mode-btn").textContent = "☀️";
+  }
+  
+  setInterval(updateUI, 1000);
+  updateUI();
+</script>
+</body>
+</html>
